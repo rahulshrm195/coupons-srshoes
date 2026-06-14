@@ -380,16 +380,24 @@ const STAFF_MAX_FLAT    = 500;  // above this ₹, admin password needed to gene
 /* ---------------------------------------------- */
 
 /* ---- FIREBASE: paste your coupons-srshoes config ---- */
-const firebaseConfig = {
+/*const firebaseConfig = {
   apiKey:            "PASTE_API_KEY",
   authDomain:        "coupons-srshoes.firebaseapp.com",
   projectId:         "coupons-srshoes",
   storageBucket:     "coupons-srshoes.firebasestorage.app",
   messagingSenderId: "PASTE_SENDER_ID",
   appId:             "PASTE_APP_ID"
-};
-/* ----------------------------------------------------- */
+};*/
+const firebaseConfig = {
+  apiKey: "AIzaSyD7aXGMd4IhK_S7Ckepu7Hnu4txDt_rjeU",
+  authDomain: "coupons-srshoes.firebaseapp.com",
+  projectId: "coupons-srshoes",
+  storageBucket: "coupons-srshoes.firebasestorage.app",
+  messagingSenderId: "361935451698",
+  appId: "1:361935451698:web:543c0eb5da63873a612e2b"
+}
 
+  
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const auth = firebase.auth();
