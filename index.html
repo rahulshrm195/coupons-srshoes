@@ -360,8 +360,11 @@ input.txt.code-in{font-family:'DM Mono',monospace;letter-spacing:2px;text-transf
 /* ====================================================================
    SR SHOES — COUPONS
    ==================================================================== */
-const APP_VERSION = "1.0.0";
+const APP_VERSION = "1.1.0";
 const CHANGELOG = [
+  { v:"1.1.0", notes:[
+    "Reprint any active coupon from the admin ledger — open the coupon and tap Print this coupon. Works from any device, so you can generate on one machine and print at the store PC."
+  ]},
   { v:"1.0.0", notes:[
     "Generate single-use coupons (% or ₹ off) with optional expiry and minimum bill.",
     "Print direct to the Kores label printer (50×20mm) with a scannable Code128 barcode.",
@@ -799,10 +802,19 @@ function openDetail(code){
   if(c.status==="void")
     html+='<div class="det-row"><span>Void reason</span><b>'+(c.voided_reason||"—")+'</b></div>'+
       '<div class="det-row"><span>Voided by</span><b>'+(c.voided_by||"—")+'</b></div>';
+  if(c.status==="active")
+    html+='<button class="btn btn-primary" style="margin-top:18px" onclick="reprintCoupon(\''+c.code+'\')">Print this coupon</button>';
   if(c.status==="active"||c.status==="expired")
-    html+='<button class="btn btn-navy" style="margin-top:18px" onclick="voidCoupon(\''+c.code+'\')">Void this coupon</button>';
+    html+='<button class="btn btn-navy" style="margin-top:10px" onclick="voidCoupon(\''+c.code+'\')">Void this coupon</button>';
   $("dm-body").innerHTML=html;
   $("detModal").classList.add("show");
+}
+
+function reprintCoupon(code){
+  const c=adminCache.find(x=>x.code===code); if(!c) return;
+  lastCoupon=c;
+  buildPrintLabel(c);
+  window.print();
 }
 
 async function voidCoupon(code){
