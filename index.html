@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1B2E4B">
+<title>SR Shoes — Coupons</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#1B2E4B; --navy2:#243D60; --navy3:#16263F;
+  --gold:#C9932A; --gold2:#E8B84B;
+  --cream:#FAF8F4; --warm:#F2EDE4;
+  --text:#1A1A1A; --muted:#6B6B6B; --border:#E4DFD6;
+  --white:#FFFFFF;
+  --red:#C0392B; --redbg:#FBEAE8;
+  --green:#1A7A45; --greenbg:#E7F5EC;
+  --amber:#B7791F; --amberbg:#FBF1DD;
+  --radius:12px; --shadow:0 2px 14px rgba(27,46,75,.10);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{font-family:'DM Sans',system-ui,sans-serif;background:var(--cream);color:var(--text);overflow:hidden}
+.mono{font-family:'DM Mono',monospace}
+
+/* ===== PIN / STAFF GATE ===== */
+#gate{position:fixed;inset:0;z-index:900;background:var(--navy);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;padding:24px}
+.brand{font-size:26px;font-weight:700;color:#fff;letter-spacing:.5px;text-align:center}
+.brand span{color:var(--gold2)}
+.brand small{display:block;font-size:12px;font-weight:500;letter-spacing:3px;color:rgba(255,255,255,.45);margin-top:6px}
+.gate-label{color:rgba(255,255,255,.55);font-size:14px}
+.dots{display:flex;gap:14px}
+.dot{width:15px;height:15px;border-radius:50%;background:rgba(255,255,255,.16);transition:.15s}
+.dot.on{background:var(--gold2)}
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;width:min(280px,80vw)}
+.key{height:60px;border-radius:12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.10);
+  color:#fff;font-size:22px;font-family:'DM Mono',monospace;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.12s}
+.key:active{background:rgba(255,255,255,.2);transform:scale(.95)}
+.key.zero{grid-column:2}
+.key.del{font-size:16px}
+.gate-err{color:#FF8A80;font-size:13px;min-height:18px}
+
+/* staff picker */
+.staff-wrap{display:none;flex-direction:column;align-items:center;gap:18px;width:min(320px,86vw)}
+.staff-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%}
+.staff-btn{padding:16px 10px;border-radius:12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);
+  color:#fff;font-size:15px;font-weight:600;cursor:pointer;transition:.12s}
+.staff-btn:active{transform:scale(.97);background:var(--gold);border-color:var(--gold)}
+
+/* ===== APP SHELL ===== */
+#app{display:none;height:100%;flex-direction:column}
+.topbar{background:var(--navy);color:#fff;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.topbar .t-brand{font-size:17px;font-weight:700}
+.topbar .t-brand span{color:var(--gold2)}
+.who{display:flex;align-items:center;gap:8px;font-size:13px;color:rgba(255,255,255,.7)}
+.who b{color:#fff;font-weight:600}
+.who button{background:rgba(255,255,255,.12);border:none;color:#fff;font-size:11px;padding:5px 9px;border-radius:7px;cursor:pointer;font-family:inherit}
+
+.scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.page{display:none;padding:18px 16px 110px;max-width:560px;margin:0 auto}
+.page.active{display:block}
+
+/* tabs */
+.tabbar{flex-shrink:0;background:var(--white);border-top:1px solid var(--border);display:flex;
+  padding:6px 6px calc(6px + env(safe-area-inset-bottom));box-shadow:0 -2px 12px rgba(0,0,0,.04)}
+.tab{flex:1;border:none;background:none;padding:9px 4px;border-radius:10px;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--muted);font-family:inherit;font-size:11px;font-weight:600}
+.tab svg{width:23px;height:23px;stroke:currentColor;fill:none;stroke-width:1.8}
+.tab.on{color:var(--navy);background:var(--warm)}
+
+h2.head{font-size:20px;font-weight:700;color:var(--navy);margin-bottom:4px}
+p.sub{font-size:13.5px;color:var(--muted);margin-bottom:18px;line-height:1.5}
+
+.card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:14px;box-shadow:var(--shadow)}
+.field{margin-bottom:15px}
+.field:last-child{margin-bottom:0}
+label.lbl{display:block;font-size:12.5px;font-weight:600;color:var(--navy);margin-bottom:7px;letter-spacing:.2px}
+.hint{font-size:11.5px;color:var(--muted);font-weight:400;margin-left:4px}
+input.txt{width:100%;padding:13px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:16px;font-family:inherit;background:var(--cream);color:var(--text);transition:.15s}
+input.txt:focus{outline:none;border-color:var(--gold);background:#fff}
+input.txt.code-in{font-family:'DM Mono',monospace;letter-spacing:2px;text-transform:uppercase;font-size:20px;text-align:center}
+
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{padding:9px 14px;border:1.5px solid var(--border);border-radius:9px;background:var(--cream);
+  font-size:14px;font-weight:600;color:var(--navy);cursor:pointer;transition:.12s;font-family:inherit}
+.chip.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+.chip.gold.on{background:var(--gold);border-color:var(--gold);color:#fff}
+
+.btn{width:100%;padding:15px;border:none;border-radius:11px;font-size:16px;font-weight:700;font-family:inherit;cursor:pointer;transition:.15s;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-primary{background:var(--gold);color:#fff}
+.btn-primary:active{background:var(--gold);filter:brightness(.94)}
+.btn-navy{background:var(--navy);color:#fff}
+.btn-ghost{background:var(--warm);color:var(--navy)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn-sm{width:auto;padding:10px 16px;font-size:14px}
+
+/* redeem status card */
+.status{border-radius:var(--radius);padding:18px;margin-bottom:14px;border:1.5px solid;text-align:center;animation:pop .2s ease}
+@keyframes pop{from{transform:scale(.96);opacity:0}to{transform:scale(1);opacity:1}}
+.status.ok{background:var(--greenbg);border-color:var(--green)}
+.status.bad{background:var(--redbg);border-color:var(--red)}
+.status .s-icon{font-size:30px;line-height:1}
+.status .s-title{font-size:18px;font-weight:700;margin:6px 0 2px}
+.status.ok .s-title{color:var(--green)}
+.status.bad .s-title{color:var(--red)}
+.status .s-code{font-family:'DM Mono',monospace;font-size:15px;letter-spacing:1px;color:var(--navy);margin-top:2px}
+.status .s-meta{font-size:13px;color:var(--muted);margin-top:8px;line-height:1.6}
+.status .s-meta b{color:var(--text)}
+
+.sop{background:var(--amberbg);border:1.5px solid var(--gold);border-radius:11px;padding:13px 14px;font-size:13px;color:#7a5a12;line-height:1.55;margin-top:12px}
+.sop b{color:var(--navy)}
+
+/* stat tiles */
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:14px}
+.tile{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow)}
+.tile .t-val{font-size:24px;font-weight:700;color:var(--navy);font-family:'DM Mono',monospace}
+.tile .t-lab{font-size:11.5px;color:var(--muted);margin-top:3px;font-weight:500}
+.tile.wide{grid-column:1/-1}
+
+/* coupon list rows */
+.frow{display:flex;align-items:center;gap:10px;padding:12px 4px;border-bottom:1px solid var(--border);cursor:pointer}
+.frow:last-child{border-bottom:none}
+.frow .f-code{font-family:'DM Mono',monospace;font-weight:500;font-size:14px;color:var(--navy);flex-shrink:0}
+.frow .f-mid{flex:1;min-width:0}
+.frow .f-disc{font-size:14px;font-weight:600}
+.frow .f-sub{font-size:11.5px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pill{font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:20px;text-transform:uppercase;letter-spacing:.4px;flex-shrink:0}
+.pill.active{background:var(--greenbg);color:var(--green)}
+.pill.redeemed{background:#E8EEF6;color:var(--navy2)}
+.pill.void{background:var(--redbg);color:var(--red)}
+.pill.expired{background:var(--warm);color:var(--muted)}
+
+.seg{display:flex;gap:6px;margin-bottom:14px;overflow-x:auto;padding-bottom:2px}
+.seg button{padding:8px 13px;border:1.5px solid var(--border);background:#fff;border-radius:20px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;font-family:inherit;white-space:nowrap}
+.seg button.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+
+.empty{text-align:center;padding:40px 20px;color:var(--muted);font-size:14px;line-height:1.6}
+
+/* ===== MODAL ===== */
+.modal-bg{position:fixed;inset:0;z-index:800;background:rgba(22,38,63,.55);display:none;align-items:flex-end;justify-content:center;padding:0}
+.modal-bg.show{display:flex}
+.modal{background:#fff;border-radius:18px 18px 0 0;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;padding:22px 18px calc(22px + env(safe-area-inset-bottom));animation:slideup .25s ease}
+@keyframes slideup{from{transform:translateY(40px);opacity:.5}to{transform:translateY(0);opacity:1}}
+.modal h3{font-size:18px;font-weight:700;color:var(--navy);margin-bottom:4px}
+.modal .m-close{float:right;background:var(--warm);border:none;width:32px;height:32px;border-radius:50%;font-size:18px;color:var(--muted);cursor:pointer;margin-top:-4px}
+
+/* label preview (on screen) */
+.lbl-preview{background:#fff;border:1px dashed var(--border);border-radius:10px;padding:14px;display:flex;justify-content:center;margin:14px 0}
+#screen-label{width:200px;height:80px;border:1px solid #ddd;border-radius:4px;padding:5px 7px;display:flex;flex-direction:column;align-items:center;justify-content:space-between;background:#fff;color:#000}
+#screen-label .sl-top{font-size:10px;font-weight:700;line-height:1.1;text-align:center}
+#screen-label .sl-top em{font-style:normal;color:#000}
+#screen-label svg{max-width:100%;height:34px}
+#screen-label .sl-foot{font-size:8px;color:#222;text-align:center;line-height:1.1}
+
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--navy3);color:#fff;
+  padding:12px 20px;border-radius:30px;font-size:14px;font-weight:500;z-index:999;box-shadow:0 6px 20px rgba(0,0,0,.3);
+  opacity:0;pointer-events:none;transition:.25s;max-width:90vw;text-align:center}
+.toast.show{opacity:1;bottom:100px}
+
+.det-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:14px}
+.det-row:last-child{border-bottom:none}
+.det-row span{color:var(--muted)}
+.det-row b{color:var(--text);font-weight:600;text-align:right}
+
+.spin{display:inline-block;width:16px;height:16px;border:2.5px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* ===== PRINT (50mm x 20mm label) ===== */
+#print-label{position:fixed;left:-9999px;top:0;width:50mm;height:20mm;padding:1mm 1.5mm;
+  box-sizing:border-box;background:#fff;color:#000;font-family:'DM Sans',sans-serif;
+  display:flex;flex-direction:column;align-items:center;justify-content:space-between;text-align:center}
+#print-label .pl-top{font-size:7pt;font-weight:700;line-height:1.05}
+#print-label svg{height:9mm;max-width:46mm}
+#print-label .pl-foot{font-size:5.5pt;line-height:1.05}
+@media print{
+  body *{visibility:hidden}
+  #print-label,#print-label *{visibility:visible}
+  #print-label{left:0;top:0}
+  @page{size:50mm 20mm;margin:0}
+}
+</style>
+</head>
+<body>
+
+<!-- ================= GATE ================= -->
+<div id="gate">
+  <div class="brand">SR <span>Shoes</span><small>COUPONS</small></div>
+
+  <div id="pinView" style="display:flex;flex-direction:column;align-items:center;gap:22px">
+    <div class="gate-label">Enter staff PIN</div>
+    <div class="dots" id="dots"></div>
+    <div class="pad" id="pad"></div>
+    <div class="gate-err" id="gateErr"></div>
+  </div>
+
+  <div class="staff-wrap" id="staffView">
+    <div class="gate-label">Who's at the counter?</div>
+    <div class="staff-grid" id="staffGrid"></div>
+  </div>
+</div>
+
+<!-- ================= APP ================= -->
+<div id="app">
+  <div class="topbar">
+    <div class="t-brand">SR <span>Shoes</span> · Coupons</div>
+    <div class="who">Staff: <b id="whoName">—</b><button onclick="switchStaff()">Switch</button></div>
+  </div>
+
+  <div class="scroll">
+    <!-- ---------- GENERATE ---------- -->
+    <div class="page active" id="pg-generate">
+      <h2 class="head">New coupon</h2>
+      <p class="sub">Create a single-use discount, print it, hand it to the customer for their next visit.</p>
+
+      <div class="card">
+        <div class="field">
+          <label class="lbl">Discount</label>
+          <div class="chips" id="discChips"></div>
+          <div id="customDisc" style="display:none;margin-top:10px;gap:8px;align-items:center">
+            <div class="chips" style="margin-bottom:8px">
+              <button class="chip on" id="ctPct" onclick="setCustomType('percent')">% off</button>
+              <button class="chip" id="ctFlat" onclick="setCustomType('flat')">₹ off</button>
+            </div>
+            <input class="txt" id="customVal" type="number" inputmode="numeric" placeholder="Enter value">
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="lbl">Valid for</label>
+          <div class="chips" id="expChips"></div>
+          <input class="txt" id="expDate" type="date" style="display:none;margin-top:10px">
+        </div>
+
+        <div class="field">
+          <label class="lbl">Minimum bill <span class="hint">optional</span></label>
+          <input class="txt" id="minBill" type="number" inputmode="numeric" placeholder="No minimum">
+        </div>
+
+        <div class="field">
+          <label class="lbl">Customer name <span class="hint">optional, for your records</span></label>
+          <input class="txt" id="custName" type="text" placeholder="e.g. Sunita Patil">
+        </div>
+      </div>
+
+      <button class="btn btn-primary" id="genBtn" onclick="doGenerate()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V4h12v5M6 18H4v-7h16v7h-2M6 14h12v6H6z"/></svg>
+        Generate &amp; print
+      </button>
+    </div>
+
+    <!-- ---------- REDEEM ---------- -->
+    <div class="page" id="pg-redeem">
+      <h2 class="head">Verify &amp; redeem</h2>
+      <p class="sub">Scan the coupon (or type the code) <b>before</b> giving the discount in your POS — this is how you know it's real and unused.</p>
+
+      <div class="card">
+        <div class="field" style="margin-bottom:10px">
+          <label class="lbl">Coupon code</label>
+          <input class="txt code-in" id="codeIn" type="text" autocomplete="off" placeholder="SR—————" autocapitalize="characters">
+        </div>
+        <button class="btn btn-navy" onclick="doVerify()">Verify</button>
+      </div>
+
+      <div id="verifyOut"></div>
+    </div>
+
+    <!-- ---------- ADMIN ---------- -->
+    <div class="page" id="pg-admin">
+      <div id="adminLocked">
+        <h2 class="head">Admin</h2>
+        <p class="sub">Reports, the full coupon ledger, and void controls.</p>
+        <div class="card">
+          <div class="field">
+            <label class="lbl">Admin password</label>
+            <input class="txt" id="adminPw" type="password" placeholder="••••••••">
+          </div>
+          <button class="btn btn-navy" onclick="unlockAdmin()">Unlock</button>
+          <div class="gate-err" id="adminErr" style="margin-top:10px;text-align:center"></div>
+        </div>
+      </div>
+
+      <div id="adminPanel" style="display:none">
+        <h2 class="head">Reports</h2>
+        <p class="sub">Live across every coupon ever issued.</p>
+        <div class="tiles" id="reportTiles"></div>
+
+        <h2 class="head" style="margin-top:8px">Coupon ledger</h2>
+        <div class="seg" id="filterSeg"></div>
+        <input class="txt" id="searchBox" placeholder="Search code…" style="margin-bottom:12px" oninput="renderLedger()">
+        <div class="card" style="padding:6px 14px"><div id="ledger"></div></div>
+        <button class="btn btn-ghost" style="margin-top:14px" onclick="loadAdmin()">Refresh</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- tabs -->
+  <div class="tabbar">
+    <button class="tab on" data-pg="generate" onclick="go('generate')">
+      <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Generate</button>
+    <button class="tab" data-pg="redeem" onclick="go('redeem')">
+      <svg viewBox="0 0 24 24"><path d="M4 7V4h16v3M9 20h6M12 4v16"/><rect x="3" y="9" width="18" height="7" rx="1"/></svg>Redeem</button>
+    <button class="tab" data-pg="admin" onclick="go('admin')">
+      <svg viewBox="0 0 24 24"><path d="M12 2l8 4v6c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6z"/></svg>Admin</button>
+  </div>
+</div>
+
+<!-- generate success modal -->
+<div class="modal-bg" id="genModal">
+  <div class="modal">
+    <button class="m-close" onclick="closeModal('genModal')">×</button>
+    <h3>Coupon ready</h3>
+    <div class="lbl-preview"><div id="screen-label"></div></div>
+    <div class="det-row"><span>Code</span><b class="mono" id="gm-code">—</b></div>
+    <div class="det-row"><span>Discount</span><b id="gm-disc">—</b></div>
+    <div class="det-row"><span>Valid till</span><b id="gm-exp">—</b></div>
+    <div class="det-row"><span>Min bill</span><b id="gm-min">—</b></div>
+    <button class="btn btn-primary" style="margin-top:16px" onclick="printLabel()">Print again</button>
+    <button class="btn btn-ghost" style="margin-top:10px" onclick="closeModal('genModal')">Done</button>
+  </div>
+</div>
+
+<!-- coupon detail / void modal -->
+<div class="modal-bg" id="detModal">
+  <div class="modal">
+    <button class="m-close" onclick="closeModal('detModal')">×</button>
+    <h3 id="dm-title">Coupon</h3>
+    <div id="dm-body"></div>
+  </div>
+</div>
+
+<!-- what's new -->
+<div class="modal-bg" id="wnModal">
+  <div class="modal">
+    <button class="m-close" onclick="closeModal('wnModal')">×</button>
+    <h3>What's new</h3>
+    <div id="wn-body" style="margin-top:10px"></div>
+    <button class="btn btn-ghost" style="margin-top:16px" onclick="closeModal('wnModal')">Got it</button>
+  </div>
+</div>
+
+<!-- print target -->
+<div id="print-label">
+  <div class="pl-top" id="pl-top">SR SHOES · 10% OFF</div>
+  <svg id="pl-bc"></svg>
+  <div class="pl-foot" id="pl-foot"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- ===== libs ===== -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.6/JsBarcode.all.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+
+<script>
+/* ====================================================================
+   SR SHOES — COUPONS
+   ==================================================================== */
+const APP_VERSION = "1.0.0";
+const CHANGELOG = [
+  { v:"1.0.0", notes:[
+    "Generate single-use coupons (% or ₹ off) with optional expiry and minimum bill.",
+    "Print direct to the Kores label printer (50×20mm) with a scannable Code128 barcode.",
+    "Scan-to-verify and redeem, protected by a transaction so a coupon can never be redeemed twice.",
+    "Admin reports: outstanding liability, redemption rate, discount given, per-staff breakdown.",
+    "Full ledger with status filters, search, and admin-only void."
+  ]}
+];
+
+/* ---- SETTINGS: change these for your store ---- */
+const STAFF_PIN       = "2580";          // shared PIN to open the app
+const ADMIN_PASSWORD  = "srshoes@admin"; // admin section
+const STAFF           = ["Ramesh","Suresh","Kashish"]; // names that stamp each action
+const STAFF_MAX_PERCENT = 15;   // above this %, admin password needed to generate
+const STAFF_MAX_FLAT    = 500;  // above this ₹, admin password needed to generate
+/* ---------------------------------------------- */
+
+/* ---- FIREBASE: paste your coupons-srshoes config ---- */
+const firebaseConfig = {
+  apiKey:            "PASTE_API_KEY",
+  authDomain:        "coupons-srshoes.firebaseapp.com",
+  projectId:         "coupons-srshoes",
+  storageBucket:     "coupons-srshoes.firebasestorage.app",
+  messagingSenderId: "PASTE_SENDER_ID",
+  appId:             "PASTE_APP_ID"
+};
+/* ----------------------------------------------------- */
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const auth = firebase.auth();
+auth.signInAnonymously().catch(e=>console.error("auth",e));
+
+const COUPONS = () => db.collection("coupons");
+
+/* ---------- state ---------- */
+let currentStaff = null;
+let pinBuf = "";
+let gen = { type:"percent", value:10, customType:"percent", exp:"none", expDays:null };
+let adminCache = [];     // all coupons (admin)
+let ledgerFilter = "all";
+
+/* ---------- helpers ---------- */
+const $ = id => document.getElementById(id);
+const ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"; // no 0 O 1 I L
+function rand5(){ let s=""; for(let i=0;i<5;i++) s+=ALPHABET[Math.floor(Math.random()*ALPHABET.length)]; return s; }
+function fmtMoney(n){ return "₹"+Number(n).toLocaleString("en-IN"); }
+function fmtDate(ms){ if(!ms) return "—"; const d=new Date(ms);
+  return d.getDate().toString().padStart(2,"0")+"/"+(d.getMonth()+1).toString().padStart(2,"0")+"/"+d.getFullYear().toString().slice(2); }
+function discLabel(t,v){ return t==="percent" ? v+"% OFF" : fmtMoney(v)+" OFF"; }
+function toast(msg){ const t=$("toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove("show"),2400); }
+function closeModal(id){ $(id).classList.remove("show"); }
+
+/* ====================================================================
+   GATE — pin then staff
+   ==================================================================== */
+function buildPad(){
+  const pad=$("pad"); pad.innerHTML="";
+  ["1","2","3","4","5","6","7","8","9"].forEach(n=>pad.appendChild(mkKey(n)));
+  const sp=document.createElement("div"); pad.appendChild(sp);
+  pad.appendChild(mkKey("0","zero"));
+  const del=mkKey("⌫","del"); del.onclick=()=>{ pinBuf=pinBuf.slice(0,-1); drawDots(); }; pad.appendChild(del);
+}
+function mkKey(n,cls){ const b=document.createElement("button"); b.className="key"+(cls?" "+cls:""); b.textContent=n;
+  if(!cls||cls==="zero") b.onclick=()=>pushPin(n); return b; }
+function drawDots(){ const d=$("dots"); d.innerHTML="";
+  for(let i=0;i<4;i++){ const x=document.createElement("div"); x.className="dot"+(i<pinBuf.length?" on":""); d.appendChild(x);} }
+function pushPin(n){
+  if(pinBuf.length>=4) return;
+  pinBuf+=n; drawDots();
+  if(pinBuf.length===4){
+    if(pinBuf===STAFF_PIN){ setTimeout(showStaffPicker,150); }
+    else { $("gateErr").textContent="Wrong PIN"; navigator.vibrate&&navigator.vibrate(120);
+      setTimeout(()=>{ pinBuf=""; drawDots(); $("gateErr").textContent=""; },700); }
+  }
+}
+function showStaffPicker(){
+  $("pinView").style.display="none";
+  const sv=$("staffView"); sv.style.display="flex";
+  const g=$("staffGrid"); g.innerHTML="";
+  STAFF.forEach(name=>{ const b=document.createElement("button"); b.className="staff-btn"; b.textContent=name;
+    b.onclick=()=>enterApp(name); g.appendChild(b); });
+}
+function enterApp(name){
+  currentStaff=name; $("whoName").textContent=name;
+  $("gate").style.display="none"; $("app").style.display="flex";
+  maybeWhatsNew();
+}
+function switchStaff(){
+  pinBuf=""; drawDots();
+  $("pinView").style.display="flex"; $("staffView").style.display="none";
+  $("app").style.display="none"; $("gate").style.display="flex";
+}
+
+/* ====================================================================
+   NAV
+   ==================================================================== */
+function go(pg){
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  $("pg-"+pg).classList.add("active");
+  document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("on",t.dataset.pg===pg));
+  document.querySelector(".scroll").scrollTop=0;
+  if(pg==="redeem") setTimeout(()=>$("codeIn").focus(),100);
+}
+
+/* ====================================================================
+   GENERATE
+   ==================================================================== */
+const DISC_PRESETS=[{t:"percent",v:5},{t:"percent",v:10},{t:"percent",v:15},{t:"flat",v:100},{t:"flat",v:200}];
+const EXP_PRESETS=[{k:"none",l:"No expiry"},{k:"30",l:"30 days"},{k:"60",l:"60 days"},{k:"90",l:"90 days"},{k:"date",l:"Pick date"}];
+
+function buildGenerate(){
+  const dc=$("discChips"); dc.innerHTML="";
+  DISC_PRESETS.forEach((p,i)=>{ const b=document.createElement("button");
+    b.className="chip gold"+(p.t==="percent"&&p.v===10?" on":""); b.textContent=discLabel(p.t,p.v);
+    b.onclick=()=>pickDisc(p,b); dc.appendChild(b); });
+  const cb=document.createElement("button"); cb.className="chip"; cb.textContent="Custom"; cb.id="discCustomChip";
+  cb.onclick=()=>pickCustom(cb); dc.appendChild(cb);
+
+  const ec=$("expChips"); ec.innerHTML="";
+  EXP_PRESETS.forEach(p=>{ const b=document.createElement("button");
+    b.className="chip"+(p.k==="none"?" on":""); b.textContent=p.l;
+    b.onclick=()=>pickExp(p,b); ec.appendChild(b); });
+}
+function pickDisc(p,el){
+  gen.type=p.t; gen.value=p.v;
+  document.querySelectorAll("#discChips .chip").forEach(c=>c.classList.remove("on"));
+  el.classList.add("on"); $("customDisc").style.display="none";
+}
+function pickCustom(el){
+  document.querySelectorAll("#discChips .chip").forEach(c=>c.classList.remove("on"));
+  el.classList.add("on"); $("customDisc").style.display="block";
+  gen.type=gen.customType; gen.value=null;
+}
+function setCustomType(t){ gen.customType=t; gen.type=t;
+  $("ctPct").classList.toggle("on",t==="percent"); $("ctFlat").classList.toggle("on",t==="flat"); }
+function pickExp(p,el){
+  document.querySelectorAll("#expChips .chip").forEach(c=>c.classList.remove("on"));
+  el.classList.add("on"); gen.exp=p.k;
+  $("expDate").style.display = p.k==="date" ? "block" : "none";
+}
+
+function expiryMs(){
+  if(gen.exp==="none") return null;
+  if(gen.exp==="date"){ const v=$("expDate").value; if(!v) return null;
+    const d=new Date(v); d.setHours(23,59,59,999); return d.getTime(); }
+  const days=parseInt(gen.exp,10); const d=new Date(); d.setDate(d.getDate()+days); d.setHours(23,59,59,999); return d.getTime();
+}
+
+async function mintCode(){
+  for(let i=0;i<6;i++){ const code="SR"+rand5();
+    const snap=await COUPONS().doc(code).get();
+    if(!snap.exists) return code;
+  }
+  throw new Error("Could not generate a unique code — try again");
+}
+
+async function doGenerate(){
+  // resolve discount value
+  let type=gen.type, value=gen.value;
+  if($("customDisc").style.display==="block"){
+    type=gen.customType; value=parseInt($("customVal").value,10);
+  }
+  if(!value||value<=0) return toast("Enter a discount value");
+  if(type==="percent"&&value>90) return toast("Percent can't exceed 90");
+
+  // staff ceiling check
+  const overCeiling = (type==="percent"&&value>STAFF_MAX_PERCENT) || (type==="flat"&&value>STAFF_MAX_FLAT);
+  if(overCeiling){
+    const pw=prompt("This discount is above the staff limit. Enter admin password to issue it:");
+    if(pw!==ADMIN_PASSWORD) return toast("Admin password needed for this discount");
+  }
+
+  const exp=expiryMs();
+  const minB=parseInt($("minBill").value,10)||null;
+  const cust=$("custName").value.trim()||null;
+
+  const btn=$("genBtn"); btn.disabled=true; const old=btn.innerHTML; btn.innerHTML='<span class="spin"></span> Creating…';
+  try{
+    const code=await mintCode();
+    const doc={
+      code, discount_type:type, discount_value:value, status:"active",
+      min_bill:minB, expiry:exp, created_at:Date.now(), created_by:currentStaff,
+      issued_to_name:cust,
+      redeemed_at:null, redeemed_by:null, redeemed_bill_amount:null, discount_given:null,
+      voided_reason:null, voided_by:null, voided_at:null
+    };
+    await COUPONS().doc(code).set(doc);
+    showGenSuccess(doc);
+    // reset light fields
+    $("minBill").value=""; $("custName").value=""; $("customVal").value="";
+  }catch(e){ console.error(e); toast(e.message||"Could not create coupon"); }
+  finally{ btn.disabled=false; btn.innerHTML=old; }
+}
+
+let lastCoupon=null;
+function showGenSuccess(doc){
+  lastCoupon=doc;
+  $("gm-code").textContent=doc.code;
+  $("gm-disc").textContent=discLabel(doc.discount_type,doc.discount_value);
+  $("gm-exp").textContent=doc.expiry?fmtDate(doc.expiry):"No expiry";
+  $("gm-min").textContent=doc.min_bill?fmtMoney(doc.min_bill):"None";
+  renderScreenLabel(doc);
+  buildPrintLabel(doc);
+  $("genModal").classList.add("show");
+  setTimeout(printLabel,350); // auto-fire print
+}
+
+function labelFoot(doc){
+  const bits=[];
+  if(doc.min_bill) bits.push("Min "+fmtMoney(doc.min_bill));
+  bits.push(doc.expiry?("Exp "+fmtDate(doc.expiry)):"No expiry");
+  return bits.join(" · ");
+}
+
+function renderScreenLabel(doc){
+  const el=$("screen-label");
+  el.innerHTML='<div class="sl-top">SR SHOES · <em>'+discLabel(doc.discount_type,doc.discount_value)+'</em></div>'+
+    '<svg id="sl-bc"></svg><div class="sl-foot">'+labelFoot(doc)+'</div>';
+  try{ JsBarcode("#sl-bc",doc.code,{format:"CODE128",width:1.4,height:34,displayValue:true,fontSize:13,margin:0,textMargin:1}); }catch(e){}
+}
+function buildPrintLabel(doc){
+  $("pl-top").textContent="SR SHOES · "+discLabel(doc.discount_type,doc.discount_value);
+  $("pl-foot").textContent=labelFoot(doc);
+  try{ JsBarcode("#pl-bc",doc.code,{format:"CODE128",width:1.3,height:34,displayValue:true,fontSize:12,margin:0,textMargin:1}); }catch(e){}
+}
+function printLabel(){ if(lastCoupon){ buildPrintLabel(lastCoupon); window.print(); } }
+
+/* ====================================================================
+   VERIFY & REDEEM
+   ==================================================================== */
+let pendingCoupon=null;
+
+async function doVerify(){
+  const raw=$("codeIn").value.trim().toUpperCase().replace(/\s/g,"");
+  if(!raw) return;
+  const out=$("verifyOut"); out.innerHTML='<div class="status"><div class="s-meta">Checking…</div></div>';
+  pendingCoupon=null;
+  try{
+    const snap=await COUPONS().doc(raw).get();
+    if(!snap.exists) return showBad("Not a valid coupon",raw,"This code doesn't exist. Check the print and try again.");
+    const c=snap.data();
+    if(c.status==="void") return showBad("Coupon cancelled",raw,"This coupon was voided by admin"+(c.voided_reason?" — "+c.voided_reason:"")+".");
+    if(c.status==="redeemed") return showBad("Already redeemed",raw,
+      "Used on <b>"+fmtDate(c.redeemed_at)+"</b> by <b>"+(c.redeemed_by||"—")+"</b> against a "+fmtMoney(c.redeemed_bill_amount||0)+" bill. Cannot be used again.");
+    if(c.expiry && Date.now()>c.expiry){
+      COUPONS().doc(raw).update({status:"expired"}).catch(()=>{});
+      return showBad("Expired",raw,"This coupon expired on <b>"+fmtDate(c.expiry)+"</b>.");
+    }
+    if(c.status==="expired") return showBad("Expired",raw,"This coupon has expired.");
+    // valid
+    pendingCoupon=c;
+    showValid(c);
+  }catch(e){ console.error(e); showBad("Couldn't check",raw,"Network issue — try again."); }
+}
+
+function showBad(title,code,meta){
+  pendingCoupon=null;
+  $("verifyOut").innerHTML=
+    '<div class="status bad"><div class="s-icon">✕</div><div class="s-title">'+title+'</div>'+
+    '<div class="s-code">'+code+'</div><div class="s-meta">'+meta+'</div></div>';
+}
+
+function showValid(c){
+  const metaBits=[];
+  if(c.min_bill) metaBits.push("Minimum bill <b>"+fmtMoney(c.min_bill)+"</b>");
+  metaBits.push(c.expiry?("Valid till <b>"+fmtDate(c.expiry)+"</b>"):"No expiry");
+  if(c.issued_to_name) metaBits.push("Issued to <b>"+c.issued_to_name+"</b>");
+  $("verifyOut").innerHTML=
+    '<div class="status ok"><div class="s-icon">✓</div>'+
+      '<div class="s-title">Valid · '+discLabel(c.discount_type,c.discount_value)+'</div>'+
+      '<div class="s-code">'+c.code+'</div>'+
+      '<div class="s-meta">'+metaBits.join("<br>")+'</div>'+
+    '</div>'+
+    '<div class="card">'+
+      '<div class="field"><label class="lbl">Bill amount in POS</label>'+
+      '<input class="txt" id="billAmt" type="number" inputmode="numeric" placeholder="Enter the bill total"></div>'+
+      '<button class="btn btn-primary" onclick="doRedeem()">Redeem this coupon</button>'+
+    '</div>'+
+    '<div class="sop">After it redeems, the screen will show <b>exactly how much to take off</b> and the code. '+
+      'Apply that in your POS, write the code on the bill, and keep the paper coupon.</div>';
+  setTimeout(()=>{ const b=$("billAmt"); if(b) b.focus(); },80);
+}
+
+async function doRedeem(){
+  if(!pendingCoupon) return;
+  const bill=parseInt($("billAmt").value,10);
+  if(!bill||bill<=0) return toast("Enter the bill amount");
+  if(pendingCoupon.min_bill && bill<pendingCoupon.min_bill)
+    return toast("Bill is below the "+fmtMoney(pendingCoupon.min_bill)+" minimum");
+
+  const ref=COUPONS().doc(pendingCoupon.code);
+  try{
+    const result=await db.runTransaction(async tx=>{
+      const snap=await tx.get(ref);
+      if(!snap.exists) throw {k:"gone"};
+      const c=snap.data();
+      if(c.status==="void") throw {k:"void"};
+      if(c.status==="redeemed") throw {k:"redeemed",c};
+      if(c.expiry && Date.now()>c.expiry){ tx.update(ref,{status:"expired"}); throw {k:"expired"}; }
+      if(c.min_bill && bill<c.min_bill) throw {k:"min"};
+      let disc = c.discount_type==="percent" ? Math.round(bill*c.discount_value/100) : c.discount_value;
+      if(disc>bill) disc=bill;
+      tx.update(ref,{ status:"redeemed", redeemed_at:Date.now(), redeemed_by:currentStaff,
+        redeemed_bill_amount:bill, discount_given:disc });
+      return {disc, code:c.code};
+    });
+    $("verifyOut").innerHTML=
+      '<div class="status ok"><div class="s-icon">🎉</div>'+
+        '<div class="s-title">Apply '+fmtMoney(result.disc)+' off</div>'+
+        '<div class="s-code">'+result.code+'</div>'+
+        '<div class="s-meta">Take <b>'+fmtMoney(result.disc)+'</b> off the '+fmtMoney(bill)+' bill in your POS.</div>'+
+      '</div>'+
+      '<div class="sop">✍️ Write <b>'+result.code+'</b> on the POS bill and keep the paper coupon in the drawer. '+
+        'That\'s how we reconcile the discount later.</div>'+
+      '<button class="btn btn-ghost" style="margin-top:14px" onclick="resetRedeem()">Next customer</button>';
+    pendingCoupon=null;
+  }catch(e){
+    if(e.k==="redeemed") showBad("Already redeemed",pendingCoupon.code,
+      "Someone redeemed this a moment ago. It can't be used again.");
+    else if(e.k==="void") showBad("Coupon cancelled",pendingCoupon.code,"This coupon was voided.");
+    else if(e.k==="expired") showBad("Expired",pendingCoupon.code,"This coupon has expired.");
+    else if(e.k==="min") toast("Bill is below the minimum");
+    else if(e.k==="gone") showBad("Not found",pendingCoupon.code,"This coupon no longer exists.");
+    else { console.error(e); toast("Couldn't redeem — try again"); }
+  }
+}
+function resetRedeem(){ $("codeIn").value=""; $("verifyOut").innerHTML=""; pendingCoupon=null; $("codeIn").focus(); }
+
+/* allow scanner: Enter triggers verify; when result is showing, Enter in code box re-verifies */
+document.addEventListener("DOMContentLoaded",()=>{
+  buildPad(); drawDots(); buildGenerate(); buildFilterSeg();
+  $("codeIn").addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); doVerify(); }});
+});
+
+/* ====================================================================
+   ADMIN
+   ==================================================================== */
+function unlockAdmin(){
+  if($("adminPw").value!==ADMIN_PASSWORD){ $("adminErr").textContent="Wrong password"; return; }
+  $("adminErr").textContent=""; $("adminPw").value="";
+  $("adminLocked").style.display="none"; $("adminPanel").style.display="block";
+  loadAdmin();
+}
+
+async function loadAdmin(){
+  $("reportTiles").innerHTML='<div class="tile wide"><div class="t-lab">Loading…</div></div>';
+  try{
+    const snap=await COUPONS().get();
+    adminCache=snap.docs.map(d=>d.data());
+    renderReports(); renderLedger();
+  }catch(e){ console.error(e); $("reportTiles").innerHTML='<div class="tile wide"><div class="t-lab">Couldn\'t load. Refresh.</div></div>'; }
+}
+
+function renderReports(){
+  const all=adminCache;
+  const active=all.filter(c=>c.status==="active");
+  const redeemed=all.filter(c=>c.status==="redeemed");
+  const issued=all.length;
+  const rate=issued? Math.round(redeemed.length/issued*100):0;
+  const flatExposure=active.filter(c=>c.discount_type==="flat").reduce((s,c)=>s+(c.discount_value||0),0);
+  const pctActive=active.filter(c=>c.discount_type==="percent").length;
+  const givenTotal=redeemed.reduce((s,c)=>s+(c.discount_given||0),0);
+
+  // per-staff
+  const byStaff={};
+  all.forEach(c=>{ if(c.created_by){ byStaff[c.created_by]=byStaff[c.created_by]||{g:0,r:0}; byStaff[c.created_by].g++; }});
+  redeemed.forEach(c=>{ if(c.redeemed_by){ byStaff[c.redeemed_by]=byStaff[c.redeemed_by]||{g:0,r:0}; byStaff[c.redeemed_by].r++; }});
+  const staffRows=Object.entries(byStaff).map(([n,v])=>
+    '<div class="det-row"><span>'+n+'</span><b>'+v.g+' issued · '+v.r+' redeemed</b></div>').join("")||
+    '<div class="det-row"><span>No activity yet</span><b>—</b></div>';
+
+  $("reportTiles").innerHTML=
+    tile(active.length,"Active coupons (open liability)")+
+    tile(rate+"%","Redemption rate")+
+    tile(fmtMoney(givenTotal),"Total discount given")+
+    tile(redeemed.length+" / "+issued,"Redeemed / issued")+
+    '<div class="tile wide"><div class="t-lab" style="margin-bottom:6px">Open liability detail</div>'+
+      '<div class="det-row"><span>Flat-₹ coupons outstanding</span><b>'+fmtMoney(flatExposure)+'</b></div>'+
+      '<div class="det-row"><span>Percent coupons outstanding</span><b>'+pctActive+' coupons</b></div>'+
+    '</div>'+
+    '<div class="tile wide"><div class="t-lab" style="margin-bottom:6px">By staff</div>'+staffRows+'</div>';
+}
+function tile(val,lab){ return '<div class="tile"><div class="t-val">'+val+'</div><div class="t-lab">'+lab+'</div></div>'; }
+
+function buildFilterSeg(){
+  const seg=$("filterSeg"); const opts=[["all","All"],["active","Active"],["redeemed","Redeemed"],["expired","Expired"],["void","Void"]];
+  seg.innerHTML=opts.map(([k,l])=>'<button class="'+(k==="all"?"on":"")+'" data-f="'+k+'">'+l+'</button>').join("");
+  seg.querySelectorAll("button").forEach(b=>b.onclick=()=>{
+    ledgerFilter=b.dataset.f; seg.querySelectorAll("button").forEach(x=>x.classList.remove("on")); b.classList.add("on"); renderLedger(); });
+}
+
+function renderLedger(){
+  const q=($("searchBox").value||"").trim().toUpperCase();
+  let list=adminCache.slice().sort((a,b)=>(b.created_at||0)-(a.created_at||0));
+  if(ledgerFilter!=="all") list=list.filter(c=>c.status===ledgerFilter);
+  if(q) list=list.filter(c=>c.code.includes(q));
+  const wrap=$("ledger");
+  if(!list.length){ wrap.innerHTML='<div class="empty">No coupons here yet.</div>'; return; }
+  wrap.innerHTML=list.map(c=>
+    '<div class="frow" onclick="openDetail(\''+c.code+'\')">'+
+      '<div class="f-code">'+c.code+'</div>'+
+      '<div class="f-mid"><div class="f-disc">'+discLabel(c.discount_type,c.discount_value)+'</div>'+
+        '<div class="f-sub">'+ledgerSub(c)+'</div></div>'+
+      '<div class="pill '+c.status+'">'+c.status+'</div>'+
+    '</div>').join("");
+}
+function ledgerSub(c){
+  if(c.status==="redeemed") return "Redeemed "+fmtDate(c.redeemed_at)+" by "+(c.redeemed_by||"—")+" · "+fmtMoney(c.discount_given||0)+" off";
+  if(c.status==="void") return "Voided"+(c.voided_reason?" · "+c.voided_reason:"");
+  return "Issued "+fmtDate(c.created_at)+" by "+(c.created_by||"—")+(c.expiry?" · exp "+fmtDate(c.expiry):"");
+}
+
+function openDetail(code){
+  const c=adminCache.find(x=>x.code===code); if(!c) return;
+  $("dm-title").textContent=c.code;
+  let html='<div class="det-row"><span>Status</span><b>'+c.status.toUpperCase()+'</b></div>'+
+    '<div class="det-row"><span>Discount</span><b>'+discLabel(c.discount_type,c.discount_value)+'</b></div>'+
+    '<div class="det-row"><span>Minimum bill</span><b>'+(c.min_bill?fmtMoney(c.min_bill):"None")+'</b></div>'+
+    '<div class="det-row"><span>Expiry</span><b>'+(c.expiry?fmtDate(c.expiry):"No expiry")+'</b></div>'+
+    '<div class="det-row"><span>Issued</span><b>'+fmtDate(c.created_at)+' · '+(c.created_by||"—")+'</b></div>'+
+    (c.issued_to_name?'<div class="det-row"><span>Customer</span><b>'+c.issued_to_name+'</b></div>':'');
+  if(c.status==="redeemed")
+    html+='<div class="det-row"><span>Redeemed</span><b>'+fmtDate(c.redeemed_at)+' · '+(c.redeemed_by||"—")+'</b></div>'+
+      '<div class="det-row"><span>Bill amount</span><b>'+fmtMoney(c.redeemed_bill_amount||0)+'</b></div>'+
+      '<div class="det-row"><span>Discount given</span><b>'+fmtMoney(c.discount_given||0)+'</b></div>';
+  if(c.status==="void")
+    html+='<div class="det-row"><span>Void reason</span><b>'+(c.voided_reason||"—")+'</b></div>'+
+      '<div class="det-row"><span>Voided by</span><b>'+(c.voided_by||"—")+'</b></div>';
+  if(c.status==="active"||c.status==="expired")
+    html+='<button class="btn btn-navy" style="margin-top:18px" onclick="voidCoupon(\''+c.code+'\')">Void this coupon</button>';
+  $("dm-body").innerHTML=html;
+  $("detModal").classList.add("show");
+}
+
+async function voidCoupon(code){
+  const reason=prompt("Why are you voiding "+code+"? (e.g. printed by mistake)");
+  if(reason===null) return;
+  try{
+    await COUPONS().doc(code).update({ status:"void", voided_reason:reason||"—", voided_by:currentStaff, voided_at:Date.now() });
+    closeModal("detModal"); toast(code+" voided"); loadAdmin();
+  }catch(e){ console.error(e); toast("Couldn't void — try again"); }
+}
+
+/* ====================================================================
+   WHAT'S NEW
+   ==================================================================== */
+function maybeWhatsNew(){
+  let seen=null; try{ seen=localStorage.getItem("coupons_seen_v"); }catch(e){}
+  if(seen!==APP_VERSION){
+    const c=CHANGELOG[0];
+    $("wn-body").innerHTML='<div style="font-weight:700;color:var(--navy);margin-bottom:8px">v'+c.v+'</div>'+
+      '<ul style="margin-left:18px;line-height:1.7;font-size:14px;color:var(--text)">'+
+      c.notes.map(n=>'<li>'+n+'</li>').join("")+'</ul>';
+    $("wnModal").classList.add("show");
+    try{ localStorage.setItem("coupons_seen_v",APP_VERSION); }catch(e){}
+  }
+}
+</script>
+</body>
+</html>
